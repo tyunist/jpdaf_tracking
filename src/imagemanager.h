@@ -40,69 +40,37 @@
 #ifndef IMAGEMANAGER_H
 #define IMAGEMANAGER_H
 
-#include <iostream>
 #include <vector>
-#include <string.h>
-#include <algorithm>
-#include <dirent.h>
-#include <stdio.h>
 
 class ImageManager
 {
-    public:
-        /**
-        * \brief Create a new object ImageManager
-        *
-        * \param d: directory path
-        *
-        */
-        ImageManager(const std::string &d);
-        /**
-         * \brief ImageManager Destructor
-         *
-         */
-        ~ImageManager();
-        /**
-         * \brief Return the number of analysed images
-         *
-         */
-        inline int getCount() const
-        {
-            return count;
-        }
-        /**
-         * \brief Return the end of the image set
-         *
-         */
-        inline int getEnd() const
-        {
-            return end;
-        }
-        /**
-         * \brief Return the previous image
-         *
-         * \return return the previous image
-         *
-         */
-        std::string next(const int &speed);
-        /**
-         * \brief Return current frame number
-         *
-         * \return return current frame number
-         *
-         */
-        std::string prev(const int &speed);
-    private:
-        /**
-         * \brief Sort the filenames according to the natural sort algorithm
-         *
-         * \param data: the vector containing the names of the files
-         *
-         */
-        void sorting(std::vector<std::string>& data);
-        int count, end;
-        std::vector<std::string> filename;
-        std::string dir_name;
+public:
+  /**
+  * \brief Create a new object ImageManager
+  *
+  * \param dir: directory path
+  *
+  */
+  explicit ImageManager(const std::string& dir);
+
+  /**
+   * \brief Return the next image
+   *
+   * \return return the next image
+   *
+   */
+  std::string getNext(const int& speed);
+private:
+  /**
+   * \brief Sort the file names according to the natural sort algorithm
+   *
+   * \param data: the vector containing the names of the files
+   *
+   */
+  void sorting(std::vector<std::string>& data) const;
+  std::vector<std::string> getAllFilesInFolder(const std::string& path) const;
+  size_t currentFrameIndex;
+  std::vector<std::string> fileNames;
 };
 
 #endif // IMAGEMANAGER_H
