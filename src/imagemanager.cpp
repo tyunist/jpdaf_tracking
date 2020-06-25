@@ -30,82 +30,67 @@
 
 #include <imagemanager.h>
 #include <natural_less.h>
-#include <string>
-#include <algorithm>
-#include <cassert>
-#ifdef _WINDOWS
-#include <Windows.h>
-#elif
-#include <dirent.h>
-#endif
+#include <assert.h>
 
-
-std::vector<std::string> ImageManager::getAllFilesInFolder(const std::string& path) const
+ImageManager::ImageManager(const std::string &d)
 {
-#ifdef _WINDOWS
-  std::vector<std::string> names;
-  auto search_path = path + "/*.*";
-  WIN32_FIND_DATA fd;
-  const auto hFind = ::FindFirstFile(search_path.c_str(), &fd);
-  if (hFind != INVALID_HANDLE_VALUE)
-  {
-    do
+    dir_name = d;
+    DIR *dir;
+    try
     {
-      // read all (real) files in current folder
-      // , delete '!' read other 2 default folder . and ..
-      if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-      {
-        names.emplace_back(path + fd.cFileName);
-      }
+        dir = opendir(d.c_str());
+    } catch (std::exception& e)
+    {
+        std::cout << "Directory does not exist " << e.what() << std::endl;
     }
-    while (::FindNextFile(hFind, &fd));
-    ::FindClose(hFind);
-  }
-  return names;
-#elif
-     DIR *dir;
-     try
-     {
-         dir = opendir(d.c_str());
-     } catch (std::exception& e)
-     {
-         std::cout << "Directory does not exist " << e.what() << std::endl;
-     }
 
-     struct dirent *dp;
-     while ((dp=readdir(dir)) != NULL) {
-         if(strcmp(dp->d_name, "..") != 0  &&  strcmp(dp->d_name, ".") != 0 && dp->d_name[0] != '.'
-                 && dp->d_name[0] != '~') {
-             fileNames.push_back(dir_name + "/" + std::string(dp->d_name));
-         }
-     }
-#endif
+    struct dirent *dp;
+    while ((dp=readdir(dir)) != NULL) {
+        if(strcmp(dp->d_name, "..") != 0  &&  strcmp(dp->d_name, ".") != 0 && dp->d_name[0] != '.'
+                && dp->d_name[0] != '~') {
+            filename.push_back(dir_name + "/" + std::string(dp->d_name));
+        }
+    }
+
+
+
+    assert(filename.size() != 0);
+
+    sorting(filename);
+
+    count = -1;
+    end = filename.size();
 }
 
-ImageManager::ImageManager(const std::string& dir)
-{
-  fileNames = getAllFilesInFolder(dir);
-
-  assert(!fileNames.empty());
-  sorting(fileNames);
-  currentFrameIndex = 0;
+ImageManager::~ImageManager() {
+    filename.clear();
 }
 
-void ImageManager::sorting(std::vector<std::string>& data) const
+void ImageManager::sorting(std::vector<std::string>& data)
 {
-  std::sort(data.begin(), data.end(), natural_sort);
+    std::sort(data.begin(), data.end(), natural_sort);
 }
 
-std::string ImageManager::getNext(const int& speed)
-{
-  auto currentFile = fileNames[currentFrameIndex];
-  if (currentFrameIndex + speed > fileNames.size())
-  {
-    currentFrameIndex = fileNames.size();
-  }
-  else
-  {
-    currentFrameIndex += speed;
-  }
-  return currentFile;
+std::string ImageManager::next(const int &speed) {
+    if(count + speed >= end - 1)
+    {
+        count = end - 1;
+    }
+    else
+    {
+        count += speed;
+    }
+    return filename[count];
+}
+
+std::string ImageManager::prev(const int &speed) {
+    if(count - speed >= 0)
+    {
+       count -= speed;
+    }
+    else
+    {
+       count = 0;
+    }
+    return filename[count];
 }

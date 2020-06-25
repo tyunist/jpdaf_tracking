@@ -61,7 +61,19 @@ JPDAFTracker works under Linux environments. I recommend a so-called out of sour
 
 ## How to use
 
+### Requires: 
+- [x] Boxes are given in the detection.txt file, 1 row per one image, starting by the image index (must be 1) i.e.
+```
+1,5,386,193,41,15,517,239,84,37,623,36,45,28,484,187,56,21,516,251,38,19
+``` 
+where 1: index of the 1st frame. Corresponding image should be "%06d.jpg"%(img_frame); 5: number of objects ; 
+following numbers represent bboxes (top left x, top left y, width, hight)
+
+
 Go to the bin diretory and launch the program with the following command:
 ```bash
 ./jpdaf_tracker ../config/kalman_param.txt /path/to/the/detection_file.txt /path/to/the/image_folder 
 ```
+
+## Example
+![JPDAF Example](output_samples/jpdaf.gif)

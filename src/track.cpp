@@ -1,40 +1,12 @@
 #include "track.h"
-#include <iostream>
-#include <Eigen/Dense>
 
 using namespace JPDAFTracker;
 
-Track::Track()
-  : id(0),
-    maxNotDetection(0),
-    ellipse_volume(0),
-    number_returns(0),
-    side(0),
-    g_sigma(0),
-    gamma(0),
-    life_time(0),
-    nodetections(0),
-    initial_entropy(0),
-    entropy_sentinel() { ; }
-
-Track::Track(
-  const float& dt,
-  const cv::Point2f& target_delta,
-  const float& x,
-  const float& y,
-  const float& vx,
-  const float& vy,
-  const float& g_sigma,
-  const float& gamma,
-  const Eigen::Matrix2f& _R)
-  : ellipse_volume(0),
-    number_returns(0),
-    side(0),
-    g_sigma(g_sigma),
-    gamma(gamma),
-    initial_entropy(0)
+Track::Track(const float& dt, const cv::Point2f& target_delta, const float& x, const float& y, const float& vx, const float& vy,
+    const float& g_sigma, const float& gamma, const Eigen::Matrix2f& _R)
+  : g_sigma(g_sigma), gamma(gamma)
 {
-  KF = std::make_shared<Kalman>(dt, target_delta, x, y, vx, vy, _R);
+  KF = std::shared_ptr<Kalman>(new Kalman(dt, target_delta, x, y, vx, vy, _R));
   life_time = 0;
   nodetections = 0;
   maxNotDetection = 10;
@@ -47,23 +19,26 @@ cv::Point2f Track::predict()
 {
   last_prediction = KF->predict();
   const Eigen::Matrix2f& S = KF->getS();
-  if (life_time == 0)
+  if(life_time == 0) 
   {
     initial_entropy = KF->getEntropy();
   }
-  else if (nodetections >= maxNotDetection)
+  else if(nodetections >= maxNotDetection)
   {
     entropy_sentinel = TrackState::DISCARD;
   }
-  else if (life_time >= 10)
+  /// The following number (1) determines how many frames to accept a track
+  else if(life_time >= 3)
   {
     entropy_sentinel = TrackState::ACCEPT;
   }
-
+  
   //Compute the volume VG
   ellipse_volume = CV_PI * g_sigma * sqrt(S.determinant());
-  const auto& param = ellipse_volume * gamma + 1;
+  const float& param = ellipse_volume*gamma+1;
   number_returns = std::floor(param);
-  side = sqrt(param / gamma) * .5;
+  side = sqrt(param / gamma) * .5; 
   return last_prediction;
 }
+
+
